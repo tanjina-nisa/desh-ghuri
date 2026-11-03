@@ -10,6 +10,6 @@ A browser driving game on the real map of Bangladesh.
 
 Controls: Arrow keys / WASD to drive, Shift = turbo, Space = brake, P = auto-drive, I = info, G = destination, T = new start, M = whole map. On-screen buttons on mobile.
 
-Pure static site (Leaflet + OpenStreetMap/CARTO tiles). No build step.
+3D chase-camera driving on real OpenStreetMap data (MapLibre GL + OpenFreeMap vector tiles, no API key). No build step.
 
-Data: district/upazila boundaries © geoBoundaries (CC BY 4.0) via `bangladesh-geojson`; map © OpenStreetMap contributors, © CARTO.
+Data: district/upazila boundaries © geoBoundaries (CC BY 4.0) via `bangladesh-geojson`; map © OpenStreetMap contributors, tiles by OpenFreeMap.

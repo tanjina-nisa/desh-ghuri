@@ -3,20 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Desh Ghuri — বাংলাদেশ ঘুরি | Bangladesh 3D Driving Game</title>
-<meta name="description" content="Drive a rickshaw, CNG, bus or bike in 3D across all 64 districts of Bangladesh and discover famous places.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛺</text></svg>">
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<title>Desh Ghuri — Dhaka Street Racer | ঢাকা ঘুরি</title>
+<meta name="description" content="Drive a car, bike, bus, CNG or rickshaw on the real streets of Dhaka with satellite view, traffic and famous places.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏎️</text></svg>">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Baloo+Da+2:wght@600;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root{--g:#006a4e;--r:#f42a41;--ink:#1b1f1d;--muted:#5d6b64;--card:#fff;--line:#e3e8e5}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;font-family:'Hind Siliguri',system-ui,sans-serif;color:var(--ink);background:#0d1b14;user-select:none;-webkit-user-select:none}
+html,body{height:100%;overflow:hidden;font-family:'Hind Siliguri',system-ui,sans-serif;color:var(--ink);background:#9fd0f5;user-select:none;-webkit-user-select:none}
 button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input{font:inherit;user-select:text;-webkit-user-select:text}
 #map{position:fixed;inset:0;z-index:1}
-.maplibregl-ctrl-bottom-right{bottom:0;right:0}
+#shake{position:fixed;inset:0;z-index:1;will-change:transform}
+.maplibregl-ctrl-bottom-right{bottom:0;right:0;z-index:600}
 .maplibregl-ctrl-attrib{font-size:10px;opacity:.75}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:12px;font-weight:700;transition:.15s}
 .btn-g{background:var(--g);color:#fff}.btn-g:hover{filter:brightness(1.1)}
@@ -37,25 +38,38 @@ h1,h2,h3,.brand{font-family:'Baloo Da 2','Hind Siliguri',sans-serif}
 .vcard{border:2px solid var(--line);border-radius:14px;padding:10px;text-align:center;background:#fff;transition:.15s}
 .vcard:hover{border-color:#9ad1bd}.vcard.on{border-color:var(--g);background:#e8f5ef}
 .vcard b{display:block;font-size:15px}.vcard small{color:var(--muted);font-size:12px}.vcard .spd{font-size:11px;color:var(--g);font-weight:700}
-.dlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:46vh;overflow:auto;padding:2px}
+.dlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;max-height:46vh;overflow:auto;padding:2px}
 .dbtn{border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;text-align:left;background:#fff;font-size:14px}
 .dbtn:hover{border-color:var(--g)}.dbtn.on{background:var(--g);color:#fff;border-color:var(--g)}.dbtn small{display:block;opacity:.7;font-size:11px}
-.divh{grid-column:1/-1;font-weight:700;color:var(--g);margin-top:6px;font-size:13px;text-transform:uppercase;letter-spacing:.05em}
 .nav{display:flex;justify-content:space-between;gap:10px;margin-top:20px}
+.keys{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:6px}.keys div{background:#f3f7f5;border-radius:10px;padding:8px 10px;font-size:14px}
+kbd{background:#fff;border-radius:5px;padding:1px 7px;font-size:12px;border:1px solid #bbb;box-shadow:0 2px 0 #bbb;font-family:inherit;font-weight:700}
 
 /* loading */
 #loading{position:fixed;inset:0;z-index:900;background:#0d1b14;color:#fff;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-weight:700}
 #loading.show{display:flex}
 .spin{width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:#38d39f;border-radius:50%;animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
 
-/* car sprite */
-#car{position:fixed;z-index:50;pointer-events:none;transform-origin:50% 100%;will-change:transform,left,top;display:none}
-#car .tag{position:absolute;left:50%;top:-24px;transform:translateX(-50%);background:rgba(0,106,78,.92);color:#fff;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;white-space:nowrap}
-#car.braking .brake{fill:#ff3b3b;filter:drop-shadow(0 0 4px #ff3b3b)}
-#car .dust{position:absolute;left:50%;bottom:-6px;width:140px;height:30px;transform:translateX(-50%);background:radial-gradient(ellipse,rgba(160,130,90,.55),transparent 70%);opacity:0;transition:opacity .3s}
-#car.offroad .dust{opacity:1}
-#car .flame{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);font-size:26px;opacity:0;transition:opacity .15s}
+/* sprites */
+.spr{position:fixed;left:0;top:0;z-index:40;pointer-events:none;transform-origin:50% 100%;will-change:transform;display:none}
+.spr svg{display:block;width:100%;height:100%}
+#car{z-index:60}
+#car.braking .brake,.spr.braking .brake{fill:#ff3b3b;filter:drop-shadow(0 0 6px #ff3b3b)}
+#car .flame{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);font-size:2.2em;opacity:0;transition:opacity .15s}
 #car.nitro .flame{opacity:1}
+#car .smoke{position:absolute;left:50%;bottom:-4%;width:120%;height:22%;transform:translateX(-50%);background:radial-gradient(ellipse,rgba(200,200,200,.6),transparent 70%);opacity:0;transition:opacity .2s}
+#car.scrape .smoke{opacity:1}
+
+/* speed fx */
+#fx{position:fixed;inset:0;z-index:30;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 45%,transparent 38%,rgba(255,255,255,.0) 39%,rgba(255,255,255,.18) 70%),repeating-conic-gradient(from 0deg at 50% 45%,rgba(255,255,255,.0) 0deg 4deg,rgba(255,255,255,.22) 4deg 4.6deg);-webkit-mask:radial-gradient(ellipse at 50% 45%,transparent 30%,#000 75%);mask:radial-gradient(ellipse at 50% 45%,transparent 30%,#000 75%)}
+#fx.nitro{background-color:rgba(80,160,255,.08)}
+#flash{position:fixed;inset:0;z-index:700;pointer-events:none;background:rgba(255,40,40,.35);opacity:0;transition:opacity .4s}
+
+/* cockpit */
+#cockpit{position:fixed;left:0;right:0;bottom:0;z-index:70;pointer-events:none;display:none;height:46vh}
+#cockpit svg{position:absolute;left:50%;bottom:0;height:100%;transform:translateX(-50%);overflow:visible}
+#cockpit .wheel{transition:transform .05s linear}
+#cockpit .dig{font-family:Orbitron,sans-serif;font-weight:900}
 
 /* HUD */
 .hud{position:fixed;z-index:500;pointer-events:none}.hud>*{pointer-events:auto}
@@ -69,7 +83,6 @@ h1,h2,h3,.brand{font-family:'Baloo Da 2','Hind Siliguri',sans-serif}
 #dest{top:70px;left:10px;max-width:330px}
 #dest .pill{flex-direction:column;align-items:stretch;gap:4px}#dest .row{display:flex;align-items:center;gap:8px}
 #arrow{display:inline-block;font-size:24px}
-.visited{font-size:13px;color:var(--muted)}
 
 /* gauge */
 #gauge{bottom:12px;left:50%;transform:translateX(-50%);width:230px;height:150px}
@@ -79,27 +92,31 @@ h1,h2,h3,.brand{font-family:'Baloo Da 2','Hind Siliguri',sans-serif}
 #gauge .gear{position:absolute;left:0;right:0;top:40px;text-align:center;font-family:Orbitron;color:#f6e05e;font-size:14px}
 #nitro{position:absolute;left:30px;right:30px;bottom:6px;height:7px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden}
 #nitro div{height:100%;background:linear-gradient(90deg,#3182ce,#63b3ed,#fff);width:100%}
+body.cockpit #gauge{display:none}
 #badges{bottom:168px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+body.cockpit #badges{bottom:48vh}
 .badge{background:#2b6cb0;color:#fff;border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-#minimap{bottom:14px;left:14px;width:170px;height:210px;border-radius:16px;overflow:hidden;background:rgba(10,30,22,.82);box-shadow:0 4px 16px rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.25);cursor:pointer}
-#minimap canvas{width:100%;height:100%}
-#help{bottom:14px;right:14px;font-size:12px;max-width:260px}
-#help .pill{display:block;line-height:1.7;background:rgba(255,255,255,.88)}
-kbd{background:#eee;border-radius:4px;padding:0 5px;font-size:11px;border:1px solid #ccc}
+.badge.warn{background:#c05621}
+#mini{bottom:14px;left:14px;width:190px;height:190px;border-radius:50%;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.4);border:3px solid rgba(255,255,255,.9);background:#dde}
+#mini .me{position:absolute;left:50%;top:50%;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:18px solid #f42a41;transform:translate(-50%,-60%);filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));z-index:5;pointer-events:none}
+#mini .maplibregl-ctrl-attrib,#mini .maplibregl-ctrl-logo{display:none}
+#help{bottom:14px;right:14px;font-size:12px;max-width:270px}
+#help .pill{display:block;line-height:1.75;background:rgba(255,255,255,.88)}
 
 /* touch */
 #touch{bottom:0;left:0;right:0;height:0;display:none}
-.tc{position:fixed;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.88);box-shadow:0 4px 14px rgba(0,0,0,.3);font-size:28px;display:grid;place-items:center;touch-action:none}
+.tc{position:fixed;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.88);box-shadow:0 4px 14px rgba(0,0,0,.3);font-size:28px;display:grid;place-items:center;touch-action:none;z-index:520}
 .tc.on{background:var(--g);color:#fff}
 .tc.pedal{border-radius:18px;width:74px;height:96px}
 @media (pointer:coarse),(max-width:760px){
   #touch{display:block}#help{display:none}
   #gauge{transform:translateX(-50%) scale(.62);transform-origin:50% 100%;bottom:118px}
-  #minimap{width:110px;height:136px;top:auto;bottom:auto;left:auto;right:10px;top:120px}
-  #right{top:262px;gap:6px}.rb{width:38px;height:38px;font-size:17px;border-radius:11px}#hornBtn{display:none}
+  #mini{width:110px;height:110px;left:auto;right:10px;bottom:auto;top:120px}
+  #right{top:240px;gap:6px}.rb{width:38px;height:38px;font-size:17px;border-radius:11px}#hornBtn{display:none}
   #badges{bottom:218px}
+  #cockpit{bottom:96px;height:36vh}
 }
-@media (max-width:760px){.vgrid{grid-template-columns:repeat(2,1fr)}.panel{padding:20px}.brand{font-size:30px}#dest{top:122px;max-width:calc(100% - 140px)}#loc{min-width:0;flex-basis:100%}}
+@media (max-width:760px){.vgrid{grid-template-columns:repeat(2,1fr)}.panel{padding:20px}.brand{font-size:30px}#dest{top:122px;max-width:calc(100% - 140px)}#loc{min-width:0;flex-basis:100%}.keys{grid-template-columns:1fr}}
 
 /* modal */
 #ov{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:14px}
@@ -116,30 +133,34 @@ kbd{background:#eee;border-radius:4px;padding:0 5px;font-size:11px;border:1px so
 .toast{background:rgba(15,20,18,.9);color:#fff;padding:9px 16px;border-radius:12px;font-weight:600;font-size:14px;animation:tin .25s ease;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}}
 .pp{font-family:'Hind Siliguri',sans-serif}.pp b{font-size:15px}.pp .bt{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.pp .bt button{padding:6px 10px;border-radius:9px;font-weight:700;font-size:13px}
-.progress{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:6px}.progress div{height:100%;background:linear-gradient(90deg,var(--g),#38a169)}
 .destpin{font-size:40px;line-height:1;filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}
+body.overview .spr,body.overview #cockpit,body.overview #fx{display:none!important}
 </style>
 </head>
 <body>
-<div id="map"></div>
-<div id="car"><div class="tag" id="carTag"></div><div id="carSvg"></div><div class="dust"></div><div class="flame">🔥</div></div>
+<div id="shake"><div id="map"></div></div>
+<div id="fx"></div><div id="flash"></div>
+<div id="traffic"></div>
+<div id="car" class="spr"><div id="carSvg" style="width:100%;height:100%"></div><div class="smoke"></div><div class="flame">🔥</div></div>
+<div id="cockpit"></div>
 
 <div id="setup"><div class="panel" id="setupPanel"></div></div>
-<div id="loading"><div class="spin"></div><div>Map load hocche…</div></div>
+<div id="loading"><div class="spin"></div><div>Dhakar rasta load hocche…</div></div>
 
 <div class="hud" id="top">
   <button class="pill" id="nameBtn" title="Naam bodlao"><span class="ic">👤</span><b id="nameTxt"></b><span>✏️</span></button>
   <button class="pill" id="vehBtn" title="Gari bodlao"><span id="vehIcon"></span><b id="vehTxt"></b><span>🔄</span></button>
-  <div class="pill" id="loc"><span class="ic">📍</span><div><div class="d" id="locD">—</div><div class="u" id="locU"></div></div></div>
+  <div class="pill" id="loc"><span class="ic">📍</span><div><div class="d" id="locD">Dhaka</div><div class="u" id="locU"></div></div></div>
 </div>
 <div class="hud" id="dest"></div>
 <div class="hud" id="right">
   <button class="rb" id="hornBtn" title="Horn (H)">📯</button>
-  <button class="rb" id="infoBtn" title="Ekhane ki ache? (I)">ℹ️</button>
+  <button class="rb" id="camBtn" title="Camera bodlao (C)">🎥</button>
+  <button class="rb" id="satBtn" title="Satellite / Map (V)">🛰️</button>
   <button class="rb" id="destBtn" title="Destination (G)">🎯</button>
   <button class="rb" id="autoBtn" title="Auto-drive (P)">🧭</button>
-  <button class="rb" id="startBtn" title="Notun district theke shuru (T)">🚩</button>
-  <button class="rb" id="zoomBtn" title="Puro Bangladesh / gari view (M)">🗺️</button>
+  <button class="rb" id="startBtn" title="Notun jayga theke shuru (T)">🚩</button>
+  <button class="rb" id="zoomBtn" title="Puro Dhaka map (M)">🗺️</button>
   <button class="rb" id="soundBtn" title="Sound on/off (N)">🔊</button>
   <button class="rb" id="statsBtn" title="Amar journey">🏆</button>
 </div>
@@ -150,10 +171,10 @@ kbd{background:#eee;border-radius:4px;padding:0 5px;font-size:11px;border:1px so
     <path d="M35 128 A80 80 0 0 1 195 128" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="12" stroke-linecap="round"/>
     <path id="arc" d="M35 128 A80 80 0 0 1 195 128" fill="none" stroke="url(#gg)" stroke-width="12" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="251"/>
   </svg>
-  <div class="gear" id="gear">P</div><div class="v" id="spd">0</div><div class="u">KM/H</div><div id="nitro"><div id="nitroBar"></div></div>
+  <div class="gear" id="gear">N</div><div class="v" id="spd">0</div><div class="u">KM/H</div><div id="nitro"><div id="nitroBar"></div></div>
 </div>
-<div class="hud" id="minimap" title="Puro map dekho"><canvas id="mm" width="340" height="420"></canvas></div>
-<div class="hud" id="help"><div class="pill"><kbd>W</kbd>/<kbd>↑</kbd> gas · <kbd>S</kbd>/<kbd>↓</kbd> brake · <kbd>A</kbd><kbd>D</kbd> steer<br><kbd>Shift</kbd> nitro · <kbd>Space</kbd> handbrake · <kbd>H</kbd> horn<br><kbd>P</kbd> auto-drive · <kbd>M</kbd> map · Map e click = destination</div></div>
+<div class="hud" id="mini" title="Puro map dekho"><div class="me"></div></div>
+<div class="hud" id="help"><div class="pill"><kbd>↑</kbd> speed · <kbd>↓</kbd> brake · <kbd>←</kbd><kbd>→</kbd> turn<br><kbd>Space</kbd> nitro ⚡ · <kbd>H</kbd> horn · <kbd>C</kbd> camera<br><kbd>V</kbd> satellite/map · <kbd>P</kbd> auto · <kbd>M</kbd> map</div></div>
 <div class="hud" id="touch">
   <div class="tc" data-k="left" style="left:16px;bottom:24px">◀</div>
   <div class="tc" data-k="right" style="left:100px;bottom:24px">▶</div>
@@ -166,9 +187,8 @@ kbd{background:#eee;border-radius:4px;padding:0 5px;font-size:11px;border:1px so
 <div id="ov"><div class="panel" id="modal"></div></div>
 <div id="toasts"></div>
 
-<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="geo.js"></script>
-<script src="places.js"></script>
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="dhaka.js"></script>
 <script src="vehicles.js"></script>
 <script src="game.js"></script>
 </body>

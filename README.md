@@ -1,15 +1,32 @@
-# দেশ ঘুরি — Desh Ghuri 🇧🇩
+# Desh Ghuri: Dhaka Street Racer 🏎️🇧🇩
 
-A browser driving game on the real map of Bangladesh.
+A browser driving game on the **real streets of Dhaka**. You drive a car, bike, bus, truck, CNG, leguna, rickshaw, van or bicycle along the actual road network, with a satellite view, 3D buildings and traffic.
 
-- Enter your name (change it any time)
-- Pick a vehicle: Rickshaw, Van, Leguna, Bicycle, Bike, Bus, Truck, Private Car, CNG (switch any time)
-- Start from any of the 64 districts — your vehicle appears at the district centre
-- Pick a destination district, click anywhere on the map, or just free-drive
-- Arrive and see the famous places of that district; collect all 64 districts
+**Live:** https://desh-ghuri.vercel.app
 
-Controls: Arrow keys / WASD to drive, Shift = turbo, Space = brake, P = auto-drive, I = info, G = destination, T = new start, M = whole map. On-screen buttons on mobile.
+## Features
+- **Real roads:** the vehicle stays on the OpenStreetMap road network (OpenFreeMap vector tiles).
+  - Lane assist follows each road's curves.
+  - Road edges slow you down if you scrape them.
+- **Satellite view:** Esri World Imagery, with 3D buildings and asphalt lane markings on top. Press V to switch between satellite and map.
+- **Racing camera:** three views — chase, cockpit (steering wheel or bike handlebar) and far. The field of view gets wider as you go faster, with speed lines and a nitro boost.
+- **Dhaka traffic:** buses, CNGs, rickshaws, cars and bikes on the road. Collisions are detected.
+- **GPS navigation:** routes come from OSRM. Auto-drive follows the route.
+- **Famous places:** 24 places, including Lalbagh Fort, Ahsan Manzil, Shaheed Minar, the National Parliament (Sangsad Bhaban) and Hatirjheel.
 
-3D chase-camera driving on real OpenStreetMap data (MapLibre GL + OpenFreeMap vector tiles, no API key). No build step.
+## Controls
+| Key | Action |
+|---|---|
+| ↑ | Accelerate |
+| ↓ | Brake / reverse |
+| ← → | Turn |
+| Space | Nitro |
+| C | Change camera |
+| V | Switch satellite / map |
+| H | Horn |
+| P | Auto-drive |
+| M | Full Dhaka map |
+| G | Choose destination |
 
-Data: district/upazila boundaries © geoBoundaries (CC BY 4.0) via `bangladesh-geojson`; map © OpenStreetMap contributors, tiles by OpenFreeMap.
+## Tech
+Plain HTML/JS with MapLibre GL JS v5 (`calculateCameraOptionsFromTo` gives the street-level camera). It also uses OpenFreeMap, Esri World Imagery and the OSRM demo router.
